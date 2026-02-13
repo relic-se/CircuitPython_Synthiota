@@ -45,6 +45,7 @@ import fourwire
 import keypad
 import neopixel
 import rotaryio
+import time
 import tmidi
 import usb_midi
 from micropython import const
@@ -91,6 +92,8 @@ DEFAULT_BUFFER_SIZE = const(4096)
 
 DISPLAY_WIDTH = const(132)
 DISPLAY_HEIGHT = const(64)
+
+_ENCODER_SW_POLLING = 0.05
 
 # map touch id to led index
 PAD_TO_LED = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15, 23, 22, 21, 20, 19, 12, 13, 14)
@@ -191,6 +194,9 @@ class Synthioa:
             value_when_pressed=False,
             pull=True,
         )
+        self._encoder_sw_timestamp = 0
+        self._encoder_sw_event = keypad.Event(0, False)
+        self._encoder_sw_pressed = False
 
         # pots
         self._adc = analogio.AnalogIn(ADC_PIN)
@@ -219,10 +225,30 @@ class Synthioa:
     @property
     def encoder_position(self) -> int:
         return self._encoder.position
+    
+    def _update_encoder_sw(self) -> None:
+        if (now := time.monotonic()) - self._encoder_sw_timestamp >= _ENCODER_SW_POLLING:
+            self._encoder_sw_timestamp = now
+            while self._encoder_sw.events.get_into(self._encoder_sw_event):
+                if self._encoder_sw_event.pressed:
+                    self._encoder_sw_pressed = True
+                elif self._encoder_sw_event.released:
+                    self._encoder_sw_pressed = False
 
     @property
     def encoder_pressed(self) -> bool:
-        return (key := self._encoder_sw.events.get()) and key.pressed
+        self._update_encoder_sw()
+        return self._encoder_sw_pressed
+    
+    @property
+    def encoder_just_pressed(self) -> bool:
+        self._update_encoder_sw()
+        return self._encoder_sw_event.pressed
+    
+    @property
+    def encoder_just_released(self) -> bool:
+        self._update_encoder_sw()
+        return self._encoder_sw_event.released
 
     def _adc_mux_select(self, index: int) -> None:
         for i, dio in enumerate(self._adc_mux_pins):
