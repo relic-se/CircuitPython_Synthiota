@@ -63,8 +63,14 @@ Or the following command to update an existing version:
 Usage Example
 =============
 
-.. todo:: Add a quick, simple example. It and other examples should live in the
-examples folder and be included in docs/examples.rst.
+.. code-block:: python
+
+    from synthio import Synthesizer
+    from relic_synthiota import Synthiota
+    synthiota = relic_synthiota.Synthiota()
+    synth = Synthesizer(sample_rate=synthiota.sample_rate)
+    synthiota.mixer.play(synth)
+    synth.press(60)
 
 Documentation
 =============
