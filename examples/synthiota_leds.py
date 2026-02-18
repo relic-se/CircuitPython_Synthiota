@@ -16,6 +16,11 @@ while True:
         time.sleep(DELAY)
         synthiota.step_leds = 0x000000
 
+    for i in range(8):
+        synthiota.pot_leds = [COLOR if i == j else 0x000000 for j in range(8)]
+        time.sleep(DELAY)
+        synthiota.pot_leds = 0x000000
+
     for i in range(3):
         synthiota.left_slider_leds = [COLOR if i == j else 0x000000 for j in range(3)]
         time.sleep(DELAY)

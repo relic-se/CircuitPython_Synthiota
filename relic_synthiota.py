@@ -448,6 +448,19 @@ class Synthiota:  # noqa: PLR0904
         return tuple(self._adc_value)
 
     @property
+    def pot_leds(self) -> Optional[PixelReturnSequence]:
+        """The NeoPixels corresponding to each of the 8 potentiometer from left-to-right."""
+        return self._leds[16:24]
+
+    @pot_leds.setter
+    def pot_leds(self, value: Optional[PixelSequence]) -> None:
+        if isinstance(value, int):
+            value = [value] * 8
+        elif len(value) != 8:
+            value = [value[i % len(value)] for i in range(8)]
+        self._leds[16:24] = value
+
+    @property
     def touched(self) -> Tuple[Optional[bool]]:
         """The state of all touchpads as a tuple of 24 booleans."""
         return tuple(self._mpr121_touched)
