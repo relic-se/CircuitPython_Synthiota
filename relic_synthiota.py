@@ -110,12 +110,12 @@ STEP_PADS = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15)
 # pad defs
 PAD_OCTAVE_DOWN = const(19)
 PAD_OCTAVE_UP = const(20)
-PAD_RSLIDE_C = const(14)
-PAD_RSLIDE_B = const(13)
 PAD_RSLIDE_A = const(12)
-PAD_LSLIDE_C = const(23)
+PAD_RSLIDE_B = const(13)
+PAD_RSLIDE_C = const(14)
+PAD_LSLIDE_A = const(23)
 PAD_LSLIDE_B = const(22)
-PAD_LSLIDE_A = const(21)
+PAD_LSLIDE_C = const(21)
 
 
 class Slider:
