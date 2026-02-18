@@ -108,9 +108,6 @@ _DEFAULT_BUFFER_SIZE = const(4096)
 _DISPLAY_WIDTH = const(132)
 _DISPLAY_HEIGHT = const(64)
 
-_MPR121_POLLING = 0.01
-_ADC_POLLING = 0.01
-
 # map touch id to led index
 _PAD_TO_LED = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15, 23, 22, 21, 20, 19, 12, 13, 14)
 
@@ -297,14 +294,13 @@ class Synthiota:  # noqa: PLR0904
         )
         self._mpr121[1]._write_register_byte(adafruit_mpr121.MPR121_CONFIG1, 0x10)
         self._mpr121_touched = [False] * (len(_MPR121_I2C_ADDRS) * 12)
-        self._mpr121_timestamp = 0
 
         self._octave_up_button = adafruit_debouncer.Button(
-            lambda: self._update_touched() or self._mpr121_touched[_PAD_OCTAVE_UP],
+            lambda: self._mpr121_touched[_PAD_OCTAVE_UP],
             value_when_pressed=True,
         )
         self._octave_down_button = adafruit_debouncer.Button(
-            lambda: self._update_touched() or self._mpr121_touched[_PAD_OCTAVE_DOWN],
+            lambda: self._mpr121_touched[_PAD_OCTAVE_DOWN],
             value_when_pressed=True,
         )
 
@@ -350,19 +346,49 @@ class Synthiota:  # noqa: PLR0904
         self._adc_raw_value = array.array("H", [0] * _ADC_COUNT)
         self._adc_value = [0] * _ADC_COUNT
         self._adc_mux_pins = tuple([digitalio.DigitalInOut(pin) for pin in _ADC_MUX_PINS])
-        self._adc_timestamp = 0
         for dio in self._adc_mux_pins:
             dio.direction = digitalio.Direction.OUTPUT
             dio.value = False
 
         # prime ADC accumulators
         for i in range(50):
-            self._update_adc_values(True)
+            self._update_adc_values()
 
         # reset baseline data of MPR121 sliders
         time.sleep(0.1)
         self._left_slider.reset()
         self._right_slider.reset()
+
+    def _adc_mux_select(self, index: int) -> None:
+        for i, dio in enumerate(self._adc_mux_pins):
+            dio.value = bool(index & (1 << i))
+
+    def _get_adc_value(self, index: int) -> int:
+        self._adc_mux_select(index)
+        return self._adc.value
+
+    def _update_adc_values(self) -> None:
+        for i in range(_ADC_COUNT):
+            value = self._get_adc_value(i)
+            self._adc_raw_value[i] += (value - self._adc_raw_value[i]) >> _ADC_SMOOTH_SHIFT
+            self._adc_value[i] = self._adc_raw_value[i] / 65535
+
+    def update(self) -> None:
+        """Update buttons, potentiometers, and touch inputs. Call this frequently for the best
+        results!
+        """
+        # touch
+        for i, x in enumerate(self._mpr121):
+            for j, v in enumerate(x.touched_pins):
+                self._mpr121_touched[i * 12 + j] = v
+
+        # buttons
+        self._octave_up_button.update()
+        self._octave_down_button.update()
+        self._encoder_button.update()
+
+        # potentiometers
+        self._update_adc_values()
 
     @property
     def voice_count(self) -> int:
@@ -416,47 +442,14 @@ class Synthiota:  # noqa: PLR0904
         """The object for the encoder button."""
         return self._encoder_button
 
-    def _adc_mux_select(self, index: int) -> None:
-        for i, dio in enumerate(self._adc_mux_pins):
-            dio.value = bool(index & (1 << i))
-
-    def _get_adc_value(self, index: int) -> int:
-        self._adc_mux_select(index)
-        return self._adc.value
-
-    def _update_adc_values(self, force: bool = False) -> None:
-        if (now := time.monotonic()) - self._adc_timestamp >= _ADC_POLLING or force:
-            self._adc_timestamp = now
-            for i in range(_ADC_COUNT):
-                value = self._get_adc_value(i)
-                self._adc_raw_value[i] += (value - self._adc_raw_value[i]) >> _ADC_SMOOTH_SHIFT
-                self._adc_value[i] = self._adc_raw_value[i] / 65535
-
     @property
     def pots(self) -> Tuple[Optional[float]]:
         """All 8 potentiometer values as a tuple of floats from 0 to 1."""
-        self._update_adc_values()
         return tuple(self._adc_value)
-
-    def _update_touched(self) -> None:
-        if (now := time.monotonic()) - self._mpr121_timestamp >= _MPR121_POLLING:
-            self._mpr121_timestamp = now
-            for i, x in enumerate(self._mpr121):
-                for j, v in enumerate(x.touched_pins):
-                    self._mpr121_touched[i * 12 + j] = v
-
-    def update_buttons(self) -> None:
-        """Update the state of all buttons (octave up, octave down, and encoder). MUST be called
-        frequently.
-        """
-        self._octave_up_button.update()
-        self._octave_down_button.update()
-        self._encoder_button.update()
 
     @property
     def touched(self) -> Tuple[Optional[bool]]:
         """The state of all touchpads as a tuple of 24 booleans."""
-        self._update_touched()
         return tuple(self._mpr121_touched)
 
     @property
@@ -464,7 +457,6 @@ class Synthiota:  # noqa: PLR0904
         """The state of all 16 step touch pads in left-to-right order from bottom-left to
         top-right.
         """
-        self._update_touched()
         return tuple([self._mpr121_touched[i] for i in _STEP_PADS])
 
     @property

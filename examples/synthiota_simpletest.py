@@ -38,16 +38,14 @@ synthiota.mixer.voice[0].level = 0.25  # 0.25 usually better for headphones, 1.0
 
 notenum = None
 note_counter = 0
-control_counter = 0
 last_timestamp = time.monotonic()
-encoder_pressed = False
-octave_up_pressed = False
-octave_down_pressed = False
 while True:
-    current_timestamp = time.monotonic()
-    delta = current_timestamp - last_timestamp
+    synthiota.update()
 
     # synth
+    current_timestamp = time.monotonic()
+    delta = current_timestamp - last_timestamp
+    last_timestamp = current_timestamp
     if (note_counter := note_counter - delta) <= 0:
         if notenum is None:
             notenum = random.randint(32, 60)
@@ -61,24 +59,13 @@ while True:
             note_counter = 0.5
 
     # controls
-    if (control_counter := control_counter - delta) <= 0:
-        print("Encoder Position:", synthiota.encoder_position)
-        print("Encoder Switch:", encoder_pressed)
-        print("Octave Up:", octave_up_pressed)
-        print("Octave Down:", octave_down_pressed)
-        print("Left Slider:", synthiota.left_slider.value)
-        print("Right Slider:", synthiota.right_slider.value)
-        print("Steps:", "".join([str(int(x)) for x in synthiota.touched_steps]))
-        print("Pots:", synthiota.pots)
-        print()
-        encoder_pressed = False
-        octave_up_pressed = False
-        octave_down_pressed = False
-        control_counter = 0.1
-
-    synthiota.update_buttons()
-    encoder_pressed = encoder_pressed or synthiota.encoder_button.pressed
-    octave_up_pressed = octave_up_pressed or synthiota.octave_up_button.pressed
-    octave_down_pressed = octave_down_pressed or synthiota.octave_down_button.pressed
-
-    last_timestamp = current_timestamp
+    print("Encoder Position:", synthiota.encoder_position)
+    print("Encoder Switch:", synthiota.encoder_button.pressed)
+    print("Octave Up:", synthiota.octave_up_button.pressed)
+    print("Octave Down:", synthiota.octave_down_button.pressed)
+    print("Left Slider:", synthiota.left_slider.value)
+    print("Right Slider:", synthiota.right_slider.value)
+    print("Steps:", "".join([str(int(x)) for x in synthiota.touched_steps]))
+    print("Pots:", synthiota.pots)
+    print()
+    time.sleep(0.05)

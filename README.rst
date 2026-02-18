@@ -67,6 +67,7 @@ Usage Example
 
     from synthio import Synthesizer
     from relic_synthiota import Synthiota
+
     synthiota = relic_synthiota.Synthiota()
     synth = Synthesizer(sample_rate=synthiota.sample_rate)
     synthiota.mixer.play(synth)
