@@ -59,6 +59,8 @@ from micropython import const
 
 try:
     from typing import Optional, Tuple
+
+    from adafruit_pixelbuf import PixelReturnSequence, PixelReturnType, PixelSequence, PixelType
 except ImportError:
     pass
 
@@ -108,7 +110,11 @@ _DISPLAY_HEIGHT = const(64)
 _MPR121_POLLING = 0.01
 
 # map touch id to led index
-PAD_TO_LED = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15, 23, 22, 21, 20, 19, 12, 13, 14)
+_PAD_TO_LED = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15, 23, 22, 21, 20, 19, 12, 13, 14)
+
+_LED_EDIT = const(24)
+_LED_MODE = const(25)
+_LED_PLAY = const(26)
 
 # map step pads to an index
 _STEP_PADS = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15)
@@ -116,12 +122,16 @@ _STEP_PADS = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15)
 # pad defs
 _PAD_OCTAVE_DOWN = const(19)
 _PAD_OCTAVE_UP = const(20)
+
 _PAD_RSLIDE_A = const(12)
 _PAD_RSLIDE_B = const(13)
 _PAD_RSLIDE_C = const(14)
+_RSLIDE_PADS = (_PAD_RSLIDE_A, _PAD_RSLIDE_B, _PAD_RSLIDE_C)
+
 _PAD_LSLIDE_A = const(23)
 _PAD_LSLIDE_B = const(22)
 _PAD_LSLIDE_C = const(21)
+_LSLIDE_PADS = (_PAD_LSLIDE_A, _PAD_LSLIDE_B, _PAD_LSLIDE_C)
 
 
 class Slider:
@@ -217,7 +227,7 @@ class Slider:
         return value
 
 
-class Synthiota:
+class Synthiota:  # noqa: PLR0904
     """Helper library for Synthiota."""
 
     def __init__(
@@ -296,12 +306,8 @@ class Synthiota:
             value_when_pressed=True,
         )
 
-        self._left_slider = Slider(
-            [self._mpr121[i // 12][i % 12] for i in (_PAD_LSLIDE_A, _PAD_LSLIDE_B, _PAD_LSLIDE_C)]
-        )
-        self._right_slider = Slider(
-            [self._mpr121[i // 12][i % 12] for i in (_PAD_RSLIDE_A, _PAD_RSLIDE_B, _PAD_RSLIDE_C)]
-        )
+        self._left_slider = Slider([self._mpr121[i // 12][i % 12] for i in _LSLIDE_PADS])
+        self._right_slider = Slider([self._mpr121[i // 12][i % 12] for i in _RSLIDE_PADS])
 
         # display
         displayio.release_displays()
@@ -390,6 +396,15 @@ class Synthiota:
         """The neopixel driver which controls all 27 leds on the device."""
         return self._leds
 
+    def _get_led_sequence(self, pads: tuple) -> Optional[PixelSequence]:
+        return tuple([self._leds[_PAD_TO_LED.index(i)] for i in pads])
+
+    def _set_led_sequence(self, pads: tuple, value: Optional[PixelSequence]) -> None:
+        if isinstance(value, int):
+            value = tuple([value])
+        for i, pad in enumerate(pads):
+            self._leds[_PAD_TO_LED.index(pad)] = value[i % len(value)]
+
     @property
     def encoder_position(self) -> int:
         """The current position of the encoder in terms of pulses. The number of pulses per rotation
@@ -438,11 +453,22 @@ class Synthiota:
 
     @property
     def touched_steps(self) -> Tuple[Optional[bool]]:
-        """The state of all 16 step touch pads in order left-to-right from bottom-left to
+        """The state of all 16 step touch pads in left-to-right order from bottom-left to
         top-right.
         """
         self._update_touched()
         return tuple([self._mpr121_touched[i] for i in _STEP_PADS])
+
+    @property
+    def step_leds(self) -> Optional[PixelReturnSequence]:
+        """The NeoPixels for each step touch pad in left-to-right order from bottom-left to
+        top-right.
+        """
+        return self._get_led_sequence(_STEP_PADS)
+
+    @step_leds.setter
+    def step_leds(self, value: Optional[PixelSequence]) -> None:
+        self._set_led_sequence(_STEP_PADS, value)
 
     @property
     def octave_up_button(self) -> adafruit_debouncer.Button:
@@ -450,9 +476,27 @@ class Synthiota:
         return self._octave_up_button
 
     @property
+    def octave_up_led(self) -> Optional[PixelReturnType]:
+        """The NeoPixel above the octave up button."""
+        return self._leds[_PAD_TO_LED.index(_PAD_OCTAVE_UP)]
+
+    @octave_up_led.setter
+    def octave_up_led(self, value: Optional[PixelType]) -> None:
+        self._leds[_PAD_TO_LED.index(_PAD_OCTAVE_UP)] = value
+
+    @property
     def octave_down_button(self) -> adafruit_debouncer.Button:
         """The object for the octave down button."""
         return self._octave_down_button
+
+    @property
+    def octave_down_led(self) -> Optional[PixelReturnType]:
+        """The NeoPixel above the octave down button."""
+        return self._leds[_PAD_TO_LED.index(_PAD_OCTAVE_DOWN)]
+
+    @octave_down_led.setter
+    def octave_down_led(self, value: Optional[PixelType]) -> None:
+        self._leds[_PAD_TO_LED.index(_PAD_OCTAVE_DOWN)] = value
 
     @property
     def left_slider(self) -> Slider:
@@ -460,9 +504,54 @@ class Synthiota:
         return self._left_slider
 
     @property
+    def left_slider_leds(self) -> Optional[PixelReturnSequence]:
+        """The NeoPixels above the left slider from left to right."""
+        return self._get_led_sequence(_LSLIDE_PADS)
+
+    @left_slider_leds.setter
+    def left_slider_leds(self, value: Optional[PixelSequence]) -> None:
+        self._set_led_sequence(_LSLIDE_PADS, value)
+
+    @property
     def right_slider(self) -> Slider:
         """The object for the right horizontal touch slider."""
         return self._right_slider
+
+    @property
+    def right_slider_leds(self) -> Optional[PixelReturnSequence]:
+        """The NeoPixels above the right slider from left to right."""
+        return self._get_led_sequence(_RSLIDE_PADS)
+
+    @right_slider_leds.setter
+    def right_slider_leds(self, value: Optional[PixelSequence]) -> None:
+        self._set_led_sequence(_RSLIDE_PADS, value)
+
+    @property
+    def edit_led(self) -> Optional[PixelReturnType]:
+        """The edit NeoPixel."""
+        return self._leds[_LED_EDIT]
+
+    @edit_led.setter
+    def edit_led(self, value: Optional[PixelType]) -> None:
+        self._leds[_LED_EDIT] = value
+
+    @property
+    def mode_led(self) -> Optional[PixelReturnType]:
+        """The mode NeoPixel."""
+        return self._leds[_LED_MODE]
+
+    @mode_led.setter
+    def mode_led(self, value: Optional[PixelType]) -> None:
+        self._leds[_LED_MODE] = value
+
+    @property
+    def play_led(self) -> Optional[PixelReturnType]:
+        """The play NeoPixel."""
+        return self._leds[_LED_PLAY]
+
+    @play_led.setter
+    def play_led(self, value: Optional[PixelType]) -> None:
+        self._leds[_LED_PLAY] = value
 
     def get_midi_messages(self) -> Tuple[Optional[tmidi.Message]]:
         """Read all available messages from both the USB and UART MIDI ports."""
