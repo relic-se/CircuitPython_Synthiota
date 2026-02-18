@@ -434,11 +434,9 @@ class Synthiota:  # noqa: PLR0904
         return self._leds
 
     @property
-    def encoder_position(self) -> int:
-        """The current position of the encoder in terms of pulses. The number of pulses per rotation
-        is defined by the specific hardware and by the divisor.
-        """
-        return self._encoder.position
+    def encoder(self) -> rotaryio.IncrementalEncoder:
+        """The incremental encoder object."""
+        return self._encoder
 
     @property
     def encoder_button(self) -> adafruit_debouncer.Button:

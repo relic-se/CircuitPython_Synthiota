@@ -59,7 +59,7 @@ while True:
             note_counter = 0.5
 
     # controls
-    print("Encoder Position:", synthiota.encoder_position)
+    print("Encoder Position:", synthiota.encoder.position)
     print("Encoder Switch:", synthiota.encoder_button.pressed)
     print("Octave Up:", synthiota.octave_up_button.pressed)
     print("Octave Down:", synthiota.octave_down_button.pressed)
