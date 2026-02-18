@@ -8,4 +8,4 @@ adafruit-circuitpython-debouncer
 adafruit-circuitpython-displayio-sh1106
 adafruit-circuitpython-mpr121
 adafruit-circuitpython-neopixel
-circuitpython-tmidi
+tmidi
