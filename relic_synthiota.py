@@ -297,10 +297,9 @@ class Synthiota:
             divisor=4,
         )
         self._encoder_switch = digitalio.DigitalInOut(ENCODER_SW_PIN)
-        self._encoder_switch.switch_to_input(pull=True)
-        self._encoder_button = adafruit_debouncer.Button(
-            self._encoder_switch, value_when_pressed=False
-        )
+        self._encoder_switch.direction = digitalio.Direction.INPUT
+        self._encoder_switch.pull = digitalio.Pull.UP
+        self._encoder_button = adafruit_debouncer.Button(self._encoder_switch)
 
         # pots
         self._adc = analogio.AnalogIn(ADC_PIN)
@@ -381,6 +380,14 @@ class Synthiota:
             for i, x in enumerate(self._mpr121):
                 for j, v in enumerate(x.touched_pins):
                     self._mpr121_touched[i * 12 + j] = v
+
+    def update_buttons(self) -> None:
+        """Update the state of all buttons (octave up, octave down, and encoder). MUST be called
+        frequently.
+        """
+        self._octave_up_button.update()
+        self._octave_down_button.update()
+        self._encoder_button.update()
 
     @property
     def touched(self) -> tuple:
