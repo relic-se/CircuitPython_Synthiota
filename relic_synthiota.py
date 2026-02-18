@@ -37,6 +37,7 @@ Implementation Notes
 """
 
 import array
+import sys
 import time
 
 import adafruit_debouncer
@@ -126,13 +127,22 @@ _PAD_LSLIDE_C = const(21)
 class Slider:
     """Simple capacitive touch slider made from three pads attached to an MPR121."""
 
-    def __init__(self, pads: list, wrap: bool = False, offset: int = 0, scale: int = None):
+    def __init__(  # noqa: PLR0913
+        self,
+        pads: list,
+        wrap: bool = False,
+        offset: int = 0,
+        scale: int = None,
+        pull: Optional[digitalio.Pull] = None,
+    ):
         """Create a Slider object using the provided MPR121 channels.
 
         :param pads: A list of 3 adafruit_mpr121.MPR121_Channel objects
         :param wrap: Whether or not to wrap the value in a "circular" fashion
         :param offset: An offset that will be applied to the slider value from 0 to 1
         :param scale: The size of each pad, defaults to 0.333.
+        :param pull: Specify external pull resistor type. If `None`, assume pull-down or
+            chip-specific implementation that does not require a pull.
         """
         if len(pads) != 3:
             raise ValueError("Invalid number of pads")
@@ -140,18 +150,43 @@ class Slider:
         self._channels = tuple(pads)
         self._wrap = wrap
         self._offset = offset
-        self._scale = scale if scale is not None else 1 / len(self._channels)
+        self._scale = scale if scale is not None else 1 / (len(self._channels) - 1)
+        self._pull = (
+            pull
+            if pull is not None
+            else (digitalio.Pull.UP if sys.platform == "RP2350" else digitalio.Pull.DOWN)
+        )
+
+        self._threshold = [0] * len(self._channels)
         self._value = 0
+        self.reset()
+
+    def reset(self) -> None:
+        """Reset the baseline data of the MPR121."""
+        for i, channel in enumerate(self._channels):
+            value = channel._mpr121.baseline_data(channel._channel)
+            self._threshold[i] = (
+                value if value > 0 else (1 if self._pull is digitalio.Pull.DOWN else 254)
+            )
+
+    @property
+    def raw_value(self) -> Tuple[float]:
+        """Get the relative position value of each slider pad."""
+        return tuple(
+            [
+                (x.raw_value - self._threshold[i])
+                / self._threshold[i]
+                * (1 if self._pull is digitalio.Pull.DOWN else -1)
+                for i, x in enumerate(self._channels)
+            ]
+        )
 
     @property
     def value(self) -> float:
         """Get the position of the slider as a number from 0 to 1 or returns `None` if there is no
         touch detected.
         """
-        a, b, c = (
-            (x.raw_value - x.threshold) / x.threshold if x.value else -1 for x in self._channels
-        )
-
+        a, b, c = self.raw_value
         value = None
 
         # cases when finger is touching two pads
@@ -190,7 +225,7 @@ class Synthiota:
         voice_count: int = 1,
         sample_rate: int = _DEFAULT_SAMPLE_RATE,
         channel_count: int = _DEFAULT_CHANNEL_COUNT,
-        buffer_size: int = 4096,
+        buffer_size: int = _DEFAULT_BUFFER_SIZE,
     ):
         """Setup hardware resources including audio output, midi usb/uart, touch inputs, display,
         neopixels, encoder, and potentiometers.
@@ -309,6 +344,11 @@ class Synthiota:
         self._adc_mux_pins = tuple([digitalio.DigitalInOut(pin) for pin in _ADC_MUX_PINS])
         for dio in self._adc_mux_pins:
             dio.switch_to_output(value=False)
+
+        # reset baseline data of MPR121 sliders
+        time.sleep(0.1)
+        self._left_slider.reset()
+        self._right_slider.reset()
 
     @property
     def voice_count(self) -> int:
