@@ -555,6 +555,19 @@ class Synthiota:  # noqa: PLR0904
         self._leds[21:24] = value
 
     @property
+    def mode_leds(self) -> Optional[PixelReturnSequence]:
+        """The mode NeoPixels in the order of edit, mode, and play."""
+        return self._leds[24:27]
+
+    @mode_leds.setter
+    def mode_leds(self, value: Optional[PixelSequence]) -> None:
+        if isinstance(value, int):
+            value = [value] * 3
+        elif len(value) != 3:
+            value = [value[i % len(value)] for i in range(3)]
+        self._leds[24:27] = value
+
+    @property
     def edit_led(self) -> Optional[PixelReturnType]:
         """The edit NeoPixel."""
         return self._leds[_LED_EDIT]

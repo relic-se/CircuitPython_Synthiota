@@ -39,6 +39,11 @@ while True:
         time.sleep(DELAY)
         synthiota.right_slider_leds = 0x000000
 
+    for i in range(3):
+        synthiota.mode_leds = [COLOR if i == j else 0x000000 for j in range(3)]
+        time.sleep(DELAY)
+        synthiota.mode_leds = 0x000000
+
     synthiota.edit_led = COLOR
     time.sleep(DELAY)
     synthiota.edit_led = 0x000000
