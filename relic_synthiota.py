@@ -396,15 +396,6 @@ class Synthiota:  # noqa: PLR0904
         """The neopixel driver which controls all 27 leds on the device."""
         return self._leds
 
-    def _get_led_sequence(self, pads: tuple) -> Optional[PixelSequence]:
-        return tuple([self._leds[_PAD_TO_LED.index(i)] for i in pads])
-
-    def _set_led_sequence(self, pads: tuple, value: Optional[PixelSequence]) -> None:
-        if isinstance(value, int):
-            value = tuple([value])
-        for i, pad in enumerate(pads):
-            self._leds[_PAD_TO_LED.index(pad)] = value[i % len(value)]
-
     @property
     def encoder_position(self) -> int:
         """The current position of the encoder in terms of pulses. The number of pulses per rotation
@@ -464,11 +455,15 @@ class Synthiota:  # noqa: PLR0904
         """The NeoPixels for each step touch pad in left-to-right order from bottom-left to
         top-right.
         """
-        return self._get_led_sequence(_STEP_PADS)
+        return self._leds[:16]
 
     @step_leds.setter
     def step_leds(self, value: Optional[PixelSequence]) -> None:
-        self._set_led_sequence(_STEP_PADS, value)
+        if isinstance(value, int):
+            value = [value] * 16
+        elif len(value) != 16:
+            value = [value[i % len(value)] for i in range(16)]
+        self._leds[:16] = value
 
     @property
     def octave_up_button(self) -> adafruit_debouncer.Button:
@@ -506,11 +501,15 @@ class Synthiota:  # noqa: PLR0904
     @property
     def left_slider_leds(self) -> Optional[PixelReturnSequence]:
         """The NeoPixels above the left slider from left to right."""
-        return self._get_led_sequence(_LSLIDE_PADS)
+        return self._leds[16:19]
 
     @left_slider_leds.setter
     def left_slider_leds(self, value: Optional[PixelSequence]) -> None:
-        self._set_led_sequence(_LSLIDE_PADS, value)
+        if isinstance(value, int):
+            value = [value] * 3
+        elif len(value) != 3:
+            value = [value[i % len(value)] for i in range(3)]
+        self._leds[16:19] = value
 
     @property
     def right_slider(self) -> Slider:
@@ -520,11 +519,15 @@ class Synthiota:  # noqa: PLR0904
     @property
     def right_slider_leds(self) -> Optional[PixelReturnSequence]:
         """The NeoPixels above the right slider from left to right."""
-        return self._get_led_sequence(_RSLIDE_PADS)
+        return self._leds[21:24]
 
     @right_slider_leds.setter
     def right_slider_leds(self, value: Optional[PixelSequence]) -> None:
-        self._set_led_sequence(_RSLIDE_PADS, value)
+        if isinstance(value, int):
+            value = [value] * 3
+        elif len(value) != 3:
+            value = [value[i % len(value)] for i in range(3)]
+        self._leds[21:24] = value
 
     @property
     def edit_led(self) -> Optional[PixelReturnType]:
