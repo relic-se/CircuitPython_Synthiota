@@ -22,6 +22,7 @@ extensions = [
 ]
 
 autodoc_mock_imports = [
+    "adafruit_debouncer",
     "analogio",
     "audiobusio",
     "audiomixer",
@@ -33,6 +34,7 @@ autodoc_mock_imports = [
     "rotaryio",
     "usb_midi",
     "micropython",
+    "neopixel",
 ]
 
 autodoc_preserve_defaults = True

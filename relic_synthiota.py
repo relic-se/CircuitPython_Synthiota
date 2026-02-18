@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-`synthiota`
+`relic_synthiota`
 ================================================================================
 
 Helper library for Synthiota
