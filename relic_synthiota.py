@@ -257,13 +257,13 @@ class Synthiota:
         self._left_slider = Slider(
             [
                 adafruit_mpr121.MPR121_Channel(self._mpr121[i // 12], i % 12)
-                for i in (PAD_LSLIDE_C, PAD_LSLIDE_B, PAD_LSLIDE_A)
+                for i in (PAD_LSLIDE_A, PAD_LSLIDE_B, PAD_LSLIDE_C)
             ]
         )
         self._right_slider = Slider(
             [
                 adafruit_mpr121.MPR121_Channel(self._mpr121[i // 12], i % 12)
-                for i in (PAD_RSLIDE_C, PAD_RSLIDE_B, PAD_RSLIDE_A)
+                for i in (PAD_RSLIDE_A, PAD_RSLIDE_B, PAD_RSLIDE_C)
             ]
         )
 
@@ -390,8 +390,8 @@ class Synthiota:
 
     @property
     def touched_steps(self) -> tuple:
-        """The state of all 16 step touch pads in order left-to-right from top-left to
-        bottom-right.
+        """The state of all 16 step touch pads in order left-to-right from bottom-left to
+        top-right.
         """
         self._update_touched()
         return tuple([self._mpr121_touched[i] for i in STEP_PADS])
