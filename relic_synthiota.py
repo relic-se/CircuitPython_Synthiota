@@ -59,7 +59,10 @@ from micropython import const
 
 try:
     from typing import Optional, Tuple
+except ImportError:
+    pass
 
+try:
     from adafruit_pixelbuf import PixelReturnSequence, PixelReturnType, PixelSequence, PixelType
 except ImportError:
     pass

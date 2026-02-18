@@ -23,6 +23,7 @@ extensions = [
 
 autodoc_mock_imports = [
     "adafruit_debouncer",
+    "adafruit_pixelbuf",
     "analogio",
     "audiobusio",
     "audiomixer",
