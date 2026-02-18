@@ -27,6 +27,7 @@ autodoc_mock_imports = [
     "audiobusio",
     "audiomixer",
     "board",
+    "busdisplay",
     "busio",
     "digitalio",
     "displayio",
