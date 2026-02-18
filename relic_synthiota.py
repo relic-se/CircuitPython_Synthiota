@@ -35,6 +35,7 @@ Implementation Notes
 import adafruit_displayio_sh1106
 import adafruit_mpr121
 import analogio
+import array
 import audiobusio
 import audiomixer
 import board
@@ -157,8 +158,7 @@ class Synthioa:
         self._mpr121 = tuple(
             [adafruit_mpr121.MPR121(self._i2c, address=a) for a in MPR121_I2C_ADDRS]
         )
-        # default, 2*16uA charge current
-        self._mpr121[1]._write_register_byte(adafruit_mpr121.MPR121_CONFIG1, 0x05)
+        self._mpr121[1]._write_register_byte(adafruit_mpr121.MPR121_CONFIG1, 0x10)
 
         # display
         displayio.release_displays()
@@ -200,7 +200,7 @@ class Synthioa:
 
         # pots
         self._adc = analogio.AnalogIn(ADC_PIN)
-        self._adc_raw_value = [0] * ADC_COUNT
+        self._adc_raw_value = array.array('H', [0] * ADC_COUNT)
         self._adc_value = [0] * ADC_COUNT
         self._adc_mux_pins = tuple([digitalio.DigitalInOut(pin) for pin in ADC_MUX_PINS])
         for dio in self._adc_mux_pins:
