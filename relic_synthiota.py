@@ -66,43 +66,43 @@ __repo__ = "https://github.com/relic-se/CircuitPython_Synthiota.git"
 
 # pin mapping
 
-LED_PIN = board.GP18
-LED_COUNT = const(27)
-LED_BRIGHTNESS = 0.1
+_LED_PIN = board.GP18
+_LED_COUNT = const(27)
+_LED_BRIGHTNESS = 0.1
 
-I2C_SDA_PIN = board.GP2
-I2C_SCL_PIN = board.GP3
+_I2C_SDA_PIN = board.GP2
+_I2C_SCL_PIN = board.GP3
 
-DISPLAY_SCLK_PIN = board.GP10
-DISPLAY_MOSI_PIN = board.GP11
-DISPLAY_RESET_PIN = board.GP12
-DISPLAY_DC_PIN = board.GP13
+_DISPLAY_SCLK_PIN = board.GP10
+_DISPLAY_MOSI_PIN = board.GP11
+_DISPLAY_RESET_PIN = board.GP12
+_DISPLAY_DC_PIN = board.GP13
 
-ADC_MUX_PINS = (board.GP9, board.GP8, board.GP7)
-ADC_PIN = board.GP26
-ADC_COUNT = const(8)
+_ADC_MUX_PINS = (board.GP9, board.GP8, board.GP7)
+_ADC_PIN = board.GP26
+_ADC_COUNT = const(8)
 
-ENCODER_A_PIN = board.GP27
-ENCODER_B_PIN = board.GP28
-ENCODER_SW_PIN = board.GP19
+_ENCODER_A_PIN = board.GP27
+_ENCODER_B_PIN = board.GP28
+_ENCODER_SW_PIN = board.GP19
 
-UART_RX_PIN = board.GP17
-UART_TX_PIN = board.GP16
+_UART_RX_PIN = board.GP17
+_UART_TX_PIN = board.GP16
 
-I2S_BCLK_PIN = board.GP20
-I2S_LRCLK_PIN = board.GP21
-I2S_DATA_PIN = board.GP22
+_I2S_BCLK_PIN = board.GP20
+_I2S_LRCLK_PIN = board.GP21
+_I2S_DATA_PIN = board.GP22
 
-MPR121_I2C_ADDRS = (0x5A, 0x5B)
+_MPR121_I2C_ADDRS = (0x5A, 0x5B)
 
 # program constants
 
-DEFAULT_SAMPLE_RATE = const(44100)
-DEFAULT_CHANNEL_COUNT = const(2)
-DEFAULT_BUFFER_SIZE = const(4096)
+_DEFAULT_SAMPLE_RATE = const(44100)
+_DEFAULT_CHANNEL_COUNT = const(2)
+_DEFAULT_BUFFER_SIZE = const(4096)
 
-DISPLAY_WIDTH = const(132)
-DISPLAY_HEIGHT = const(64)
+_DISPLAY_WIDTH = const(132)
+_DISPLAY_HEIGHT = const(64)
 
 _MPR121_POLLING = 0.01
 
@@ -110,17 +110,17 @@ _MPR121_POLLING = 0.01
 PAD_TO_LED = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15, 23, 22, 21, 20, 19, 12, 13, 14)
 
 # map step pads to an index
-STEP_PADS = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15)
+_STEP_PADS = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15)
 
 # pad defs
-PAD_OCTAVE_DOWN = const(19)
-PAD_OCTAVE_UP = const(20)
-PAD_RSLIDE_A = const(12)
-PAD_RSLIDE_B = const(13)
-PAD_RSLIDE_C = const(14)
-PAD_LSLIDE_A = const(23)
-PAD_LSLIDE_B = const(22)
-PAD_LSLIDE_C = const(21)
+_PAD_OCTAVE_DOWN = const(19)
+_PAD_OCTAVE_UP = const(20)
+_PAD_RSLIDE_A = const(12)
+_PAD_RSLIDE_B = const(13)
+_PAD_RSLIDE_C = const(14)
+_PAD_LSLIDE_A = const(23)
+_PAD_LSLIDE_B = const(22)
+_PAD_LSLIDE_C = const(21)
 
 
 class Slider:
@@ -148,7 +148,9 @@ class Slider:
         """Get the position of the slider as a number from 0 to 1 or returns `None` if there is no
         touch detected.
         """
-        a, b, c = ((x.raw_value - x.threshold) / x.threshold for x in self._channels)
+        a, b, c = (
+            (x.raw_value - x.threshold) / x.threshold if x.value else -1 for x in self._channels
+        )
 
         value = None
 
@@ -186,8 +188,8 @@ class Synthiota:
     def __init__(
         self,
         voice_count: int = 1,
-        sample_rate: int = DEFAULT_SAMPLE_RATE,
-        channel_count: int = DEFAULT_CHANNEL_COUNT,
+        sample_rate: int = _DEFAULT_SAMPLE_RATE,
+        channel_count: int = _DEFAULT_CHANNEL_COUNT,
         buffer_size: int = 4096,
     ):
         """Setup hardware resources including audio output, midi usb/uart, touch inputs, display,
@@ -209,9 +211,9 @@ class Synthiota:
         self._channel_count = channel_count
         self._buffer_size = buffer_size
         self._audio = audiobusio.I2SOut(
-            bit_clock=I2S_BCLK_PIN,
-            word_select=I2S_LRCLK_PIN,
-            data=I2S_DATA_PIN,
+            bit_clock=_I2S_BCLK_PIN,
+            word_select=_I2S_LRCLK_PIN,
+            data=_I2S_DATA_PIN,
         )
         self._mixer = audiomixer.Mixer(
             voice_count=voice_count,
@@ -223,8 +225,8 @@ class Synthiota:
 
         # midi
         self._uart = busio.UART(
-            rx=UART_RX_PIN,
-            tx=UART_TX_PIN,
+            rx=_UART_RX_PIN,
+            tx=_UART_TX_PIN,
             baudrate=31250,
             timeout=0.001,
         )
@@ -239,78 +241,72 @@ class Synthiota:
 
         # touch
         self._i2c = busio.I2C(
-            scl=I2C_SCL_PIN,
-            sda=I2C_SDA_PIN,
+            scl=_I2C_SCL_PIN,
+            sda=_I2C_SDA_PIN,
             frequency=400_000,
         )
         self._mpr121 = tuple(
-            [adafruit_mpr121.MPR121(self._i2c, address=a) for a in MPR121_I2C_ADDRS]
+            [adafruit_mpr121.MPR121(self._i2c, address=a) for a in _MPR121_I2C_ADDRS]
         )
         self._mpr121[1]._write_register_byte(adafruit_mpr121.MPR121_CONFIG1, 0x10)
-        self._mpr121_touched = [False] * (len(MPR121_I2C_ADDRS) * 12)
+        self._mpr121_touched = [False] * (len(_MPR121_I2C_ADDRS) * 12)
         self._mpr121_timestamp = 0
 
         self._octave_up_button = adafruit_debouncer.Button(
-            lambda: self._update_touched() or self._mpr121_touched[PAD_OCTAVE_UP],
+            lambda: self._update_touched() or self._mpr121_touched[_PAD_OCTAVE_UP],
             value_when_pressed=True,
         )
         self._octave_down_button = adafruit_debouncer.Button(
-            lambda: self._update_touched() or self._mpr121_touched[PAD_OCTAVE_DOWN],
+            lambda: self._update_touched() or self._mpr121_touched[_PAD_OCTAVE_DOWN],
             value_when_pressed=True,
         )
 
         self._left_slider = Slider(
-            [
-                adafruit_mpr121.MPR121_Channel(self._mpr121[i // 12], i % 12)
-                for i in (PAD_LSLIDE_A, PAD_LSLIDE_B, PAD_LSLIDE_C)
-            ]
+            [self._mpr121[i // 12][i % 12] for i in (_PAD_LSLIDE_A, _PAD_LSLIDE_B, _PAD_LSLIDE_C)]
         )
         self._right_slider = Slider(
-            [
-                adafruit_mpr121.MPR121_Channel(self._mpr121[i // 12], i % 12)
-                for i in (PAD_RSLIDE_A, PAD_RSLIDE_B, PAD_RSLIDE_C)
-            ]
+            [self._mpr121[i // 12][i % 12] for i in (_PAD_RSLIDE_A, _PAD_RSLIDE_B, _PAD_RSLIDE_C)]
         )
 
         # display
         displayio.release_displays()
         self._spi = busio.SPI(
-            clock=DISPLAY_SCLK_PIN,
-            MOSI=DISPLAY_MOSI_PIN,
+            clock=_DISPLAY_SCLK_PIN,
+            MOSI=_DISPLAY_MOSI_PIN,
         )
         self._display_bus = fourwire.FourWire(
             self._spi,
-            command=DISPLAY_DC_PIN,
-            reset=DISPLAY_RESET_PIN,
+            command=_DISPLAY_DC_PIN,
+            reset=_DISPLAY_RESET_PIN,
             baudrate=24_000_000,
         )
         self._display = adafruit_displayio_sh1106.SH1106(
             self._display_bus,
-            width=DISPLAY_WIDTH,
-            height=DISPLAY_HEIGHT,
+            width=_DISPLAY_WIDTH,
+            height=_DISPLAY_HEIGHT,
             colstart=3,
         )
 
         # leds
-        self._leds = neopixel.NeoPixel(LED_PIN, LED_COUNT, brightness=LED_BRIGHTNESS)
+        self._leds = neopixel.NeoPixel(_LED_PIN, _LED_COUNT, brightness=_LED_BRIGHTNESS)
         self._leds.fill(0x000000)
 
         # encoder
         self._encoder = rotaryio.IncrementalEncoder(
-            pin_a=ENCODER_A_PIN,
-            pin_b=ENCODER_B_PIN,
+            pin_a=_ENCODER_A_PIN,
+            pin_b=_ENCODER_B_PIN,
             divisor=4,
         )
-        self._encoder_switch = digitalio.DigitalInOut(ENCODER_SW_PIN)
+        self._encoder_switch = digitalio.DigitalInOut(_ENCODER_SW_PIN)
         self._encoder_switch.direction = digitalio.Direction.INPUT
         self._encoder_switch.pull = digitalio.Pull.UP
         self._encoder_button = adafruit_debouncer.Button(self._encoder_switch)
 
         # pots
-        self._adc = analogio.AnalogIn(ADC_PIN)
-        self._adc_raw_value = array.array("H", [0] * ADC_COUNT)
-        self._adc_value = [0] * ADC_COUNT
-        self._adc_mux_pins = tuple([digitalio.DigitalInOut(pin) for pin in ADC_MUX_PINS])
+        self._adc = analogio.AnalogIn(_ADC_PIN)
+        self._adc_raw_value = array.array("H", [0] * _ADC_COUNT)
+        self._adc_value = [0] * _ADC_COUNT
+        self._adc_mux_pins = tuple([digitalio.DigitalInOut(pin) for pin in _ADC_MUX_PINS])
         for dio in self._adc_mux_pins:
             dio.switch_to_output(value=False)
 
@@ -375,7 +371,7 @@ class Synthiota:
         return self._adc.value
 
     def _update_adc_values(self) -> None:
-        for i in range(ADC_COUNT):
+        for i in range(_ADC_COUNT):
             self._adc_raw_value[i] = self._get_adc_value(i)
             self._adc_value[i] = self._adc_raw_value[i] / 65535
 
@@ -406,7 +402,7 @@ class Synthiota:
         top-right.
         """
         self._update_touched()
-        return tuple([self._mpr121_touched[i] for i in STEP_PADS])
+        return tuple([self._mpr121_touched[i] for i in _STEP_PADS])
 
     @property
     def octave_up_button(self) -> adafruit_debouncer.Button:
