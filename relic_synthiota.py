@@ -56,6 +56,11 @@ import tmidi
 import usb_midi
 from micropython import const
 
+try:
+    from typing import Optional, Tuple
+except ImportError:
+    pass
+
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/relic-se/CircuitPython_Synthiota.git"
 
@@ -390,13 +395,13 @@ class Synthiota:
         self._encoder_button.update()
 
     @property
-    def touched(self) -> tuple:
+    def touched(self) -> Tuple[Optional[bool]]:
         """The state of all touchpads as a tuple of 24 booleans."""
         self._update_touched()
         return tuple(self._mpr121_touched)
 
     @property
-    def touched_steps(self) -> tuple:
+    def touched_steps(self) -> Tuple[Optional[bool]]:
         """The state of all 16 step touch pads in order left-to-right from bottom-left to
         top-right.
         """
@@ -423,7 +428,7 @@ class Synthiota:
         """The object for the right horizontal touch slider."""
         return self._right_slider
 
-    def get_midi_messages(self) -> tuple:
+    def get_midi_messages(self) -> Tuple[Optional[tmidi.Message]]:
         """Read all available messages from both the USB and UART MIDI ports."""
         msgs = []
         while msg := self._midi_usb.receive() or self._midi_uart.receive():

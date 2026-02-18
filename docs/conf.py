@@ -30,8 +30,8 @@ autodoc_mock_imports = [
     "digitalio",
     "displayio",
     "fourwire",
-    "keypad",
     "rotaryio",
+    "usb_midi",
     "micropython",
 ]
 
