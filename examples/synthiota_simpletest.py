@@ -69,6 +69,7 @@ while True:
         print("Left Slider:", synthiota.left_slider.value)
         print("Right Slider:", synthiota.right_slider.value)
         print("Steps:", "".join([str(int(x)) for x in synthiota.touched_steps]))
+        print("Pots:", synthiota.pots)
         print()
         encoder_pressed = False
         octave_up_pressed = False
