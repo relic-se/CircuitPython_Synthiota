@@ -25,10 +25,9 @@ keywords = [
     "circuitpython",
     "micropython",
     "synthiota",
-    "synthio,",
-    "synthiota,",
-    "i2s,",
-    "sh1106,",
+    "synthio",
+    "i2s",
+    "sh1106",
     "mpr121",
 ]
 license = {text = "MIT"}

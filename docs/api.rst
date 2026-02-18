@@ -7,5 +7,5 @@
 API Reference
 #############
 
-.. automodule:: synthiota
+.. automodule:: relic_synthiota
     :members:
