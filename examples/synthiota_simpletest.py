@@ -61,8 +61,8 @@ while True:
     # controls
     print("Encoder Position:", synthiota.encoder.position)
     print("Encoder Switch:", synthiota.encoder_button.pressed)
-    print("Octave Up:", synthiota.octave_up_button.pressed)
-    print("Octave Down:", synthiota.octave_down_button.pressed)
+    print("Up:", synthiota.up_button.pressed)
+    print("Down:", synthiota.down_button.pressed)
     print("Left Slider:", synthiota.left_slider.value)
     print("Right Slider:", synthiota.right_slider.value)
     print("Steps:", "".join([str(int(x)) for x in synthiota.touched_steps]))

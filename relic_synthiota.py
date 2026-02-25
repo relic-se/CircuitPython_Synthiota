@@ -122,8 +122,8 @@ _LED_PLAY = const(26)
 _STEP_PADS = (7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 18, 17, 16, 15)
 
 # pad defs
-_PAD_OCTAVE_DOWN = const(19)
-_PAD_OCTAVE_UP = const(20)
+_PAD_DOWN = const(19)
+_PAD_UP = const(20)
 
 _PAD_RSLIDE_A = const(12)
 _PAD_RSLIDE_B = const(13)
@@ -298,12 +298,12 @@ class Synthiota:  # noqa: PLR0904
         self._mpr121[1]._write_register_byte(adafruit_mpr121.MPR121_CONFIG1, 0x10)
         self._mpr121_touched = [False] * (len(_MPR121_I2C_ADDRS) * 12)
 
-        self._octave_up_button = adafruit_debouncer.Button(
-            lambda: self._mpr121_touched[_PAD_OCTAVE_UP],
+        self._up_button = adafruit_debouncer.Button(
+            lambda: self._mpr121_touched[_PAD_UP],
             value_when_pressed=True,
         )
-        self._octave_down_button = adafruit_debouncer.Button(
-            lambda: self._mpr121_touched[_PAD_OCTAVE_DOWN],
+        self._down_button = adafruit_debouncer.Button(
+            lambda: self._mpr121_touched[_PAD_DOWN],
             value_when_pressed=True,
         )
 
@@ -386,8 +386,8 @@ class Synthiota:  # noqa: PLR0904
                 self._mpr121_touched[i * 12 + j] = v
 
         # buttons
-        self._octave_up_button.update()
-        self._octave_down_button.update()
+        self._up_button.update()
+        self._down_button.update()
         self._encoder_button.update()
 
         # potentiometers
@@ -489,32 +489,32 @@ class Synthiota:  # noqa: PLR0904
         self._leds[:16] = value
 
     @property
-    def octave_up_button(self) -> adafruit_debouncer.Button:
-        """The object for the octave up button."""
-        return self._octave_up_button
+    def up_button(self) -> adafruit_debouncer.Button:
+        """The object for the up button."""
+        return self._up_button
 
     @property
-    def octave_up_led(self) -> Optional[PixelReturnType]:
-        """The NeoPixel above the octave up button."""
-        return self._leds[_PAD_TO_LED.index(_PAD_OCTAVE_UP)]
+    def up_led(self) -> Optional[PixelReturnType]:
+        """The NeoPixel above the up button."""
+        return self._leds[_PAD_TO_LED.index(_PAD_UP)]
 
-    @octave_up_led.setter
-    def octave_up_led(self, value: Optional[PixelType]) -> None:
-        self._leds[_PAD_TO_LED.index(_PAD_OCTAVE_UP)] = value
-
-    @property
-    def octave_down_button(self) -> adafruit_debouncer.Button:
-        """The object for the octave down button."""
-        return self._octave_down_button
+    @up_led.setter
+    def up_led(self, value: Optional[PixelType]) -> None:
+        self._leds[_PAD_TO_LED.index(_PAD_UP)] = value
 
     @property
-    def octave_down_led(self) -> Optional[PixelReturnType]:
-        """The NeoPixel above the octave down button."""
-        return self._leds[_PAD_TO_LED.index(_PAD_OCTAVE_DOWN)]
+    def down_button(self) -> adafruit_debouncer.Button:
+        """The object for the down button."""
+        return self._down_button
 
-    @octave_down_led.setter
-    def octave_down_led(self, value: Optional[PixelType]) -> None:
-        self._leds[_PAD_TO_LED.index(_PAD_OCTAVE_DOWN)] = value
+    @property
+    def down_led(self) -> Optional[PixelReturnType]:
+        """The NeoPixel above the down button."""
+        return self._leds[_PAD_TO_LED.index(_PAD_DOWN)]
+
+    @down_led.setter
+    def down_led(self, value: Optional[PixelType]) -> None:
+        self._leds[_PAD_TO_LED.index(_PAD_DOWN)] = value
 
     @property
     def left_slider(self) -> Slider:
