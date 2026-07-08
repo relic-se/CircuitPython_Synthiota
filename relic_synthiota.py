@@ -281,9 +281,13 @@ class Synthiota:  # noqa: PLR0904
             midi_in=self._uart,
             midi_out=self._uart,
         )
-        self._midi_usb = tmidi.MIDI(
-            midi_in=usb_midi.ports[0],
-            midi_out=usb_midi.ports[1],
+        self._midi_usb = (
+            tmidi.MIDI(
+                midi_in=usb_midi.ports[0],
+                midi_out=usb_midi.ports[1],
+            )
+            if len(usb_midi.ports) >= 2
+            else None
         )
 
         # touch
@@ -595,7 +599,10 @@ class Synthiota:  # noqa: PLR0904
     def get_midi_messages(self) -> Tuple[Optional[tmidi.Message]]:
         """Read all available messages from both the USB and UART MIDI ports."""
         msgs = []
-        while msg := self._midi_usb.receive() or self._midi_uart.receive():
+        while (
+            msg := (self._midi_usb.receive() if self._midi_usb is not None else None)
+            or self._midi_uart.receive()
+        ):
             msgs.append(msg)
         return tuple(msgs)
 
@@ -604,5 +611,6 @@ class Synthiota:  # noqa: PLR0904
 
         :param message: The MIDI message you would like to send.
         """
-        self._midi_usb.send(message)
+        if self._midi_usb is not None:
+            self._midi_usb.send(message)
         self._midi_uart.send(message)
