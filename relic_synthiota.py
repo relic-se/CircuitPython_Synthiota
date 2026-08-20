@@ -606,7 +606,7 @@ class Synthiota:  # noqa: PLR0904
             msgs.append(msg)
         return tuple(msgs)
 
-    def send_midi_message(self, message: tmidi.Message, channel: int|None = None) -> None:
+    def send_midi_message(self, message: tmidi.Message, channel: int | None = None) -> None:
         """Send a message to both the USB and UART MIDI ports.
 
         :param message: The MIDI message you would like to send.
